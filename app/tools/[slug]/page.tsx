@@ -1,62 +1,45 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { tools } from "@/config/tools";
-import { siteConfig } from "@/config/site";
-import ToolLayout from "@/components/ToolLayout";
-import { ToolJsonLd } from "@/components/ToolJsonLd";
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { tools, getToolBySlug } from '@/config/tools';
+import { siteConfig } from '@/config/site';
+import ToolJsonLd from '@/components/ToolJsonLd';
+import ToolLayout from '@/components/ToolLayout';
 
-// 静态导出：预生成所有工具页
-export function generateStaticParams() {
-  return tools.map((t) => ({ slug: t.slug }));
+interface Props {
+  params: { slug: string };
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const tool = tools.find((t) => t.slug === params.slug);
-  if (!tool) return {};
+export function generateStaticParams() {
+  return tools.map((tool) => ({ slug: tool.slug }));
+}
 
-  const url = `${siteConfig.domain}/tools/${tool.slug}`;
+export function generateMetadata({ params }: Props): Metadata {
+  const tool = getToolBySlug(params.slug);
+  if (!tool) return {};
   return {
-    title: tool.name,
+    title: `${tool.name} | ${siteConfig.name}`,
     description: tool.tagline,
     keywords: tool.keywords,
-    alternates: { canonical: url },
+    alternates: { canonical: `${siteConfig.url}/tools/${tool.slug}` },
     openGraph: {
-      title: `${tool.name} | ${siteConfig.name}`,
+      title: tool.name,
       description: tool.tagline,
-      url,
-      type: "website",
+      url: `${siteConfig.url}/tools/${tool.slug}`,
     },
   };
 }
 
-// AGENT: 在此 import 各工具的交互组件
-// import JsonFormatterTool from "@/tools/json-formatter/JsonFormatterTool";
-// import Base64Tool from "@/tools/base64/Base64Tool";
-
-// AGENT: 在此映射 slug → 组件
-const toolComponents: Record<string, React.ComponentType> = {
-  // "json-formatter": JsonFormatterTool,
-  // "base64": Base64Tool,
-};
-
-export default function ToolPage({ params }: { params: { slug: string } }) {
-  const tool = tools.find((t) => t.slug === params.slug);
+export default function ToolPage({ params }: Props) {
+  const tool = getToolBySlug(params.slug);
   if (!tool) notFound();
-
-  const ToolComponent = toolComponents[tool.slug];
 
   return (
     <>
-      <ToolJsonLd tool={tool} />
+      <ToolJsonLd name={tool.name} description={tool.tagline} slug={tool.slug} howToSteps={tool.howToSteps} faqs={tool.faqs} />
       <ToolLayout tool={tool}>
-        {ToolComponent ? (
-          <ToolComponent />
-        ) : (
-          // 占位：agent 未实现组件时的提示
-          <div className="text-center py-12 text-gray-400 text-sm">
-            Tool component not implemented yet.
-          </div>
-        )}
+        <p className="text-gray-500 text-sm">
+          Interactive converter coming soon. Use the guide below to convert {tool.name.toLowerCase()} manually.
+        </p>
       </ToolLayout>
     </>
   );

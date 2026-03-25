@@ -1,38 +1,46 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { tools, getToolsByCategory } from "@/config/tools";
-import { siteConfig } from "@/config/site";
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { tools, getAllCategories } from '@/config/tools';
+import { siteConfig } from '@/config/site';
+import { Tool } from '@/lib/types';
 
 export const metadata: Metadata = {
-  title: "All Tools",
-  description: `Browse all free online tools on ${siteConfig.name}.`,
-  alternates: { canonical: `${siteConfig.domain}/tools` },
+  title: `All Tools | ${siteConfig.name}`,
+  description: 'Browse all unit conversion tools for length, weight, and temperature.',
+  alternates: { canonical: `${siteConfig.url}/tools` },
 };
 
 export default function ToolsPage() {
-  const byCategory = getToolsByCategory();
+  const categories = getAllCategories();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">All Tools</h1>
-      <p className="text-gray-500 mb-8">{tools.length} free tools, no sign-up required.</p>
+    <main className="max-w-4xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">All Conversion Tools</h1>
+      <p className="text-gray-600 mb-10">
+        Free online unit converters — fast, accurate, and easy to use.
+      </p>
 
-      {Object.entries(byCategory).map(([category, categoryTools]) => (
-        <section key={category} className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-            {category}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categoryTools.map((tool) => (
-              <Link key={tool.slug} href={`/tools/${tool.slug}`}
-                className="block p-5 bg-white border border-gray-200 rounded-xl hover:border-blue-400 hover:shadow-md transition-all">
-                <p className="font-semibold text-gray-900">{tool.name}</p>
-                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{tool.tagline}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
+      {categories.map((category: string) => {
+        const categoryTools = tools.filter((t: Tool) => t.category === category);
+        return (
+          <section key={category} className="mb-10">
+            <h2 className="text-xl font-semibold capitalize mb-4 text-gray-800">{category}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {categoryTools.map((tool: Tool) => (
+                <Link
+                  key={tool.slug}
+                  href={`/tools/${tool.slug}`}
+                  className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  {tool.icon && <span className="text-2xl mb-2 block">{tool.icon}</span>}
+                  <h3 className="font-semibold text-gray-900">{tool.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{tool.tagline}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </main>
   );
 }

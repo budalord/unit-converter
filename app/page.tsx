@@ -1,54 +1,62 @@
-import Link from "next/link";
-import { tools, getToolsByCategory } from "@/config/tools";
-import { siteConfig } from "@/config/site";
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { tools, getAllCategories } from '@/config/tools';
+import { siteConfig } from '@/config/site';
+import { Tool } from '@/lib/types';
+
+export const metadata: Metadata = {
+  title: `${siteConfig.name} — Free Unit Converter`,
+  description: siteConfig.description,
+  alternates: { canonical: siteConfig.url },
+  openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
+  },
+};
 
 export default function HomePage() {
-  const byCategory = getToolsByCategory();
-  const featured = tools.slice(0, 6);
+  const categories = getAllCategories();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      {/* Hero */}
+    <main className="max-w-4xl mx-auto px-4 py-12">
       <section className="text-center mb-14">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{siteConfig.name}</h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto">{siteConfig.description}</p>
-        <Link href="/tools"
-          className="inline-block mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-          Browse All Tools →
-        </Link>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Free Unit Converter</h1>
+        <p className="text-lg text-gray-600 max-w-xl mx-auto">
+          Convert length, weight, and temperature instantly. No ads, no sign-up required.
+        </p>
       </section>
 
-      {/* Featured tools */}
-      {featured.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-5">Popular Tools</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featured.map((tool) => (
-              <Link key={tool.slug} href={`/tools/${tool.slug}`}
-                className="block p-5 bg-white border border-gray-200 rounded-xl hover:border-blue-400 hover:shadow-md transition-all">
-                <p className="font-semibold text-gray-900">{tool.name}</p>
-                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{tool.tagline}</p>
-                <span className="inline-block mt-3 text-xs text-blue-600 font-medium">Use tool →</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {categories.map((category: string) => {
+        const categoryTools = tools.filter((t: Tool) => t.category === category);
+        return (
+          <section key={category} className="mb-10">
+            <h2 className="text-xl font-semibold capitalize mb-4 text-gray-800">{category}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {categoryTools.map((tool: Tool) => (
+                <Link
+                  key={tool.slug}
+                  href={`/tools/${tool.slug}`}
+                  className="block border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                >
+                  {tool.icon && <span className="text-3xl mb-2 block">{tool.icon}</span>}
+                  <h3 className="font-semibold text-gray-900">{tool.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{tool.tagline}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
-      {/* Categories */}
-      {Object.keys(byCategory).length > 1 && (
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-5">Browse by Category</h2>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(byCategory).map(([cat, catTools]) => (
-              <Link key={cat} href={`/tools?category=${encodeURIComponent(cat)}`}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-colors">
-                {cat} <span className="text-gray-400">({catTools.length})</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+      <section className="mt-16 text-center text-sm text-gray-400">
+        <p>
+          Looking for more tools?{' '}
+          <Link href="/tools" className="underline hover:text-gray-600">
+            Browse all converters
+          </Link>
+        </p>
+      </section>
+    </main>
   );
 }
